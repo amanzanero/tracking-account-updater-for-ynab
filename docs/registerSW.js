@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/tracking-account-updater-for-ynab/sw.js', { scope: '/tracking-account-updater-for-ynab/' })})}
