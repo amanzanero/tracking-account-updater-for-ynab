@@ -149,7 +149,7 @@ function InnerApp() {
   };
 
   return (
-    <div className="min-h-screen w-full flex justify-center p-2">
+    <div className="min-h-dvh h-full w-full flex justify-center p-2">
       <form className="w-full max-w-screen-lg" onSubmit={onSubmit}>
         <Card>
           <CardHeader>
