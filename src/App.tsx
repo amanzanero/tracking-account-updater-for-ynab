@@ -203,16 +203,18 @@ function InnerApp() {
             )}
           </CardContent>
           <CardFooter>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={
-                accountBalanceUpdatesArray.length === 0 ||
-                newTransactionsMutation.isPending
-              }
-            >
-              Submit
-            </Button>
+            {trackingAccounts && trackingAccounts.length && (
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={
+                  accountBalanceUpdatesArray.length === 0 ||
+                  newTransactionsMutation.isPending
+                }
+              >
+                Submit
+              </Button>
+            )}
           </CardFooter>
         </Card>
       </form>
