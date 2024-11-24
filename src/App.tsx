@@ -203,7 +203,7 @@ function InnerApp() {
             )}
           </CardContent>
           <CardFooter>
-            {trackingAccounts && trackingAccounts.length && (
+            {trackingAccounts && trackingAccounts.length > 0 && (
               <Button
                 type="submit"
                 className="w-full"
