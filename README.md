@@ -6,4 +6,4 @@ Otherwise, you have to go reconcile each account manually. This just pulls up a 
 
 Privacy note: This app doesn't store any data from YNAB. It just uses the API to pull in your account balances and create transactions. It's all done in your browser, in memory.
 
-![tutorial](/docs/tutorial.png)
+![tutorial](/images/tutorial.png)
