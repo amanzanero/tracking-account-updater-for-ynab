@@ -1,13 +1,7 @@
 import React from "react";
 import type * as ynab from "ynab";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +24,7 @@ import {
   useYnabAccounts,
   useYnabBudgets,
 } from "@/lib/ynab-apiclient";
+import { createFileRoute } from "@tanstack/react-router";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +64,10 @@ const AccountTable: React.FC<{
   );
 };
 
+export const Route = createFileRoute("/")({
+  component: App,
+});
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -79,11 +78,8 @@ function App() {
 
 function InnerApp() {
   const [ynabApiToken, setYnabApiToken] = React.useState<string | null>(null);
-  const [editingYnabApiToken, setEditingYnabApiToken] =
-    React.useState<string>("");
-  const [selectedBudgetId, setSelectedBudgetId] = React.useState<string | null>(
-    null
-  );
+  const [editingYnabApiToken, setEditingYnabApiToken] = React.useState<string>("");
+  const [selectedBudgetId, setSelectedBudgetId] = React.useState<string | null>(null);
   const [accountBalanceUpdates, setAccountBalanceUpdates] = React.useState<{
     [key: string]: number;
   }>({});
@@ -96,16 +92,11 @@ function InnerApp() {
 
   const budgetsQuery = useYnabBudgets(ynabApiToken);
   const accountsQuery = useYnabAccounts(ynabApiToken, selectedBudgetId);
-  const newTransactionsMutation = useUpdateYnabTrackingAccounts(
-    ynabApiToken,
-    selectedBudgetId
-  );
+  const newTransactionsMutation = useUpdateYnabTrackingAccounts(ynabApiToken, selectedBudgetId);
 
   const trackingAccounts = React.useMemo(() => {
     return (
-      accountsQuery.data?.data.accounts.filter(
-        (account) => account.type === "otherAsset"
-      ) ?? null
+      accountsQuery.data?.data.accounts.filter((account) => account.type === "otherAsset") ?? null
     );
   }, [accountsQuery.data]);
 
@@ -113,9 +104,7 @@ function InnerApp() {
     return Object.entries(accountBalanceUpdates).reduce(
       (acc, [id, balance]) => {
         // make sure to only submit updates if balances are different from the original
-        const originalBalance = trackingAccounts?.find(
-          (account) => account.id === id
-        )?.balance;
+        const originalBalance = trackingAccounts?.find((account) => account.id === id)?.balance;
         if (originalBalance !== balance * 1000) {
           acc.push({
             id,
@@ -142,9 +131,6 @@ function InnerApp() {
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
-    console.log("submitting");
-
-    console.log("updates", accountBalanceUpdatesArray);
     newTransactionsMutation.mutate(accountBalanceUpdatesArray);
   };
 
@@ -153,22 +139,17 @@ function InnerApp() {
       <form className="w-full max-w-screen-lg" onSubmit={onSubmit}>
         <Card>
           <CardHeader>
-            <CardTitle>Brokerage Accounts Updater</CardTitle>
+            <CardTitle>Tracking Account Updater for YNAB</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <span>
-                {ynabApiToken
-                  ? `Using token ${maskString(ynabApiToken)}`
-                  : "Please set a token"}
+                {ynabApiToken ? `Using token ${maskString(ynabApiToken)}` : "Please set a token"}
               </span>
             </div>
             <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:space-x-4 sm:items-end">
               <div className="w-full">
-                <label
-                  htmlFor="token"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
+                <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-1">
                   Personal Access Token
                 </label>
                 <Input
@@ -208,8 +189,7 @@ function InnerApp() {
                 type="submit"
                 className="w-full"
                 disabled={
-                  accountBalanceUpdatesArray.length === 0 ||
-                  newTransactionsMutation.isPending
+                  accountBalanceUpdatesArray.length === 0 || newTransactionsMutation.isPending
                 }
               >
                 Submit
