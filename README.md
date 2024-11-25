@@ -7,3 +7,7 @@ Otherwise, you have to go reconcile each account manually. This just pulls up a 
 **Privacy note**: This app doesn't store any data from YNAB. It just uses the API to pull in your account balances and create transactions. It's all done in your browser, in memory.
 
 ![tutorial](/images/tutorial.png)
+
+## Hosting
+
+Right now I'm hosting this on github pages since it's free and this is a static site. **For devs**: As a result I have to have the `/tracking-account-updater-for-ynab/` basepath set up everywhere.
