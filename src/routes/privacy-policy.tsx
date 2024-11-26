@@ -6,7 +6,7 @@ export const Route = createFileRoute("/privacy-policy")({
 
 function RouteComponent() {
   return (
-    <article className="prose w-full max-w-screen-lg text-foreground">
+    <article className="prose w-full max-w-screen-md text-foreground">
       <h1 className="text-foreground">Privacy Policy</h1>
       <h2 className="text-foreground">Information We Collect</h2>
       <p className="text-foreground">
@@ -54,8 +54,8 @@ function RouteComponent() {
 
       <h2 className="text-foreground">Contact Us</h2>
       <p>
-        If you have any questions or concerns about our privacy practices, please contact me
-        at&nbsp;
+        If you have any questions or concerns about our privacy practices, please contact me at
+        <br />
         <a
           className="dark:text-white dark:hover:text-gray-300"
           href="mailto:trackingaccountupdaterforynab@manz.aleeas.com"

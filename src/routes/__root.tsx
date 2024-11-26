@@ -3,7 +3,7 @@ import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
 export const Route = createRootRoute({
   component: () => (
     <>
-      <div className="p-2 flex gap-2 justify-end">
+      <div className="p-4 flex gap-2 justify-end">
         <Link to="/" className="[&.active]:font-bold">
           Home
         </Link>

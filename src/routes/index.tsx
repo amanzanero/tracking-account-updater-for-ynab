@@ -102,8 +102,8 @@ function InnerApp() {
   };
 
   return (
-    <form className="w-full max-w-screen-lg" onSubmit={onSubmit}>
-      <div className="space-y-4">
+    <form className="w-full max-w-screen-md" onSubmit={onSubmit}>
+      <div className="space-y-4 pb-4">
         <div className="flex justify-between">
           <h1 className="text-xl font-bold">Tracking Account Updater for YNAB</h1>
           {authState.status === "authenticated" && <Button onClick={logout}>Logout</Button>}
