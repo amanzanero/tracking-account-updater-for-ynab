@@ -8,20 +8,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  useUpdateYnabTrackingAccounts,
-  useYnabAccounts,
-  useYnabBudgets,
-} from "@/lib/ynab-apiclient";
+import { useUpdateYnabTrackingAccounts, useYnabAccounts, useYnabBudgets } from "@/lib/ynab-data";
 import { createFileRoute } from "@tanstack/react-router";
 import AccountTable from "@/components/AccountTable";
-import { useYnabAuthContext, YnabAuthProvider } from "@/lib/auth";
-
-const queryClient = new QueryClient();
+import { Authentication, useYnabAuthContext, YnabAuthProvider } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
   component: App,
 });
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
@@ -34,11 +30,28 @@ function App() {
 }
 
 function InnerApp() {
-  const { authState, login, logout } = useYnabAuthContext();
+  const { authState, logout } = useYnabAuthContext();
+
+  return (
+    <div className="w-full max-w-screen-md">
+      <div className="h-4" />
+      {authState.status === "authenticated" ? (
+        <LoggedIn authState={authState} logout={logout} />
+      ) : (
+        <LoggedOut authState={authState} />
+      )}
+    </div>
+  );
+}
+
+const LoggedIn: React.FC<{
+  authState: Authentication & { status: "authenticated" };
+  logout: () => void;
+}> = ({ authState, logout }) => {
   const [selectedBudgetId, setSelectedBudgetId] = React.useState<string | null>(null);
 
   useEffect(() => {
-    if (authState.status === "authenticated" && authState.selectedBudgetId !== null) {
+    if (authState.selectedBudgetId !== null) {
       setSelectedBudgetId(authState.selectedBudgetId);
     }
   }, [authState]);
@@ -63,6 +76,12 @@ function InnerApp() {
     );
   }, [accountsQuery.data]);
 
+  const onReset: React.MouseEventHandler = (e) => {
+    e.preventDefault();
+    setAccountBalanceUpdates({});
+    accountsQuery.refetch();
+  };
+
   const accountBalanceUpdatesArray = React.useMemo(() => {
     return Object.entries(accountBalanceUpdates).reduce(
       (acc, [id, balance]) => {
@@ -86,29 +105,17 @@ function InnerApp() {
     newTransactionsMutation.mutate(accountBalanceUpdatesArray);
   };
 
-  const LoginButton = () => {
-    switch (authState.status) {
-      case "pending":
-        return (
-          <Button onClick={login} disabled>
-            Login
-          </Button>
-        );
-      case "unauthenticated":
-        return <Button onClick={login}>Login</Button>;
-      case "authenticated":
-        return null;
-    }
-  };
-
   return (
-    <form className="w-full max-w-screen-md" onSubmit={onSubmit}>
-      <div className="space-y-4 pb-4">
-        <div className="flex justify-between">
-          <h1 className="text-xl font-bold">Tracking Account Updater for YNAB</h1>
-          {authState.status === "authenticated" && <Button onClick={logout}>Logout</Button>}
-        </div>
-        <LoginButton />
+    <>
+      <h1 className="font-extrabold text-4xl sm:text-5xl">Tracking Account Updater for YNAB</h1>
+      <div className="h-6" />
+      <div className="w-full flex sm:justify-end">
+        <Button size="lg" className="w-full sm:w-auto" onClick={logout}>
+          Logout
+        </Button>
+      </div>
+      <div className="h-4" />
+      <form className="space-y-4" onSubmit={onSubmit}>
         {budgetsQuery.isSuccess && budgetsQuery.data !== null ? (
           <Select onValueChange={setSelectedBudgetId} value={selectedBudgetId ?? undefined}>
             <SelectTrigger className="w-full">
@@ -124,10 +131,13 @@ function InnerApp() {
           </Select>
         ) : null}
         {trackingAccounts && (
-          <AccountTable
-            accounts={trackingAccounts}
-            onAccountBalanceUpdate={onUpdateAccountBalance}
-          />
+          <>
+            <Button onClick={onReset}>Reset balances to YNAB values</Button>
+            <AccountTable
+              accounts={trackingAccounts}
+              onAccountBalanceUpdate={onUpdateAccountBalance}
+            />
+          </>
         )}
         {trackingAccounts && trackingAccounts.length > 0 && (
           <Button
@@ -138,9 +148,33 @@ function InnerApp() {
             Submit
           </Button>
         )}
-      </div>
-    </form>
+      </form>
+    </>
   );
-}
+};
+
+const LoggedOut: React.FC<{
+  authState: Authentication & { status: "unauthenticated" | "pending" };
+}> = ({ authState }) => {
+  const { login } = useYnabAuthContext();
+  return (
+    <div className="w-full">
+      <div className="bg-neutral-100 dark:bg-neutral-800 py-16 px-8 rounded-lg">
+        <div className="mx-auto text-center">
+          <h1 className="font-extrabold text-4xl sm:text-5xl">Tracking Account Updater for YNAB</h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Easily update the balances on all your tracking accounts in bulk. No need to go and
+            reconcile each account one by one.
+          </p>
+          <div className="mt-6">
+            <Button onClick={login} size="lg" disabled={authState.status === "pending"}>
+              Get started
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default App;

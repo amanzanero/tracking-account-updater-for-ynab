@@ -1,7 +1,7 @@
 import { API, User } from "ynab";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Authentication =
+export type Authentication =
   | {
       status: "authenticated";
       user: User;
@@ -25,6 +25,7 @@ const useYnabAuth = () => {
     }
     if (token) {
       const fetchAndSetUser = async () => {
+        setAuthState({ status: "pending" });
         const ynabApi = new API(token);
         try {
           const response = await ynabApi.user.getUser();

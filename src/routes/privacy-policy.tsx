@@ -54,8 +54,8 @@ function RouteComponent() {
 
       <h2 className="text-foreground">Contact Us</h2>
       <p>
-        If you have any questions or concerns about our privacy practices, please contact me at
-        <br />
+        If you have any questions or concerns about our privacy practices, please contact us
+        at&nbsp;
         <a
           className="dark:text-white dark:hover:text-gray-300"
           href="mailto:trackingaccountupdaterforynab@manz.aleeas.com"
