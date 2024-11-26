@@ -5,6 +5,7 @@ import { VitePWA } from "vite-plugin-pwa";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 
 export default defineConfig({
+  base: "/tracking-account-updater-for-ynab/",
   plugins: [
     TanStackRouterVite(),
     react(),

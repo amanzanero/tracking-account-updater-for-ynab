@@ -209,7 +209,7 @@ const LoggedOut: React.FC<{
           <div className="h-6" />
           <h2 className="font-bold text-xl sm:text-2xl">Screenshot</h2>
           <div className="h-4" />
-          <img src="/demo.webp" />
+          <img src="/tracking-account-updater-for-ynab/demo.webp" />
         </div>
       </div>
     </div>
