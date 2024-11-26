@@ -1,5 +1,4 @@
 import React from "react";
-import type * as ynab from "ynab";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -11,7 +10,7 @@ import {
 } from "@/components/ui/table";
 
 const AccountTable: React.FC<{
-  accounts: ynab.Account[];
+  accounts: { id: string; name: string; balance: number; edited?: boolean }[];
   onAccountBalanceUpdate?: (id: string, balance: string) => void;
 }> = ({ accounts, onAccountBalanceUpdate: onChange }) => {
   if (accounts.length === 0) {
@@ -29,12 +28,19 @@ const AccountTable: React.FC<{
       <TableBody>
         {accounts.map((account) => (
           <TableRow key={account.id}>
-            <TableCell>{account.name}</TableCell>
+            <TableCell>
+              {account.name}
+              {account.edited ? (
+                <>
+                  &nbsp;<span className="font-bold">(Updated)</span>
+                </>
+              ) : null}
+            </TableCell>
             <TableCell>
               <Input
                 type="number"
                 step="0.01"
-                defaultValue={account.balance / 1000}
+                value={isNaN(account.balance) ? "" : account.balance}
                 onChange={(e) => onChange?.(account.id, e.target.value)}
                 placeholder="Enter balance"
               />

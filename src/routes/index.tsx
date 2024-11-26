@@ -49,22 +49,15 @@ const LoggedIn: React.FC<{
   logout: () => void;
 }> = ({ authState, logout }) => {
   const [selectedBudgetId, setSelectedBudgetId] = React.useState<string | null>(null);
-
-  useEffect(() => {
-    if (authState.selectedBudgetId !== null) {
-      setSelectedBudgetId(authState.selectedBudgetId);
-    }
-  }, [authState]);
-
-  const [accountBalanceUpdates, setAccountBalanceUpdates] = React.useState<{
-    [key: string]: number;
-  }>({});
-  const onUpdateAccountBalance = (id: string, balance: string) => {
-    const balanceInt = parseFloat(balance);
-    if (!isNaN(balanceInt)) {
-      setAccountBalanceUpdates((prev) => ({ ...prev, [id]: balanceInt }));
-    }
-  };
+  const [accountBalances, setAccountBalances] = React.useState<
+    | {
+        id: string;
+        balance: number;
+        name: string;
+        edited?: boolean;
+      }[]
+    | null
+  >(null);
 
   const budgetsQuery = useYnabBudgets();
   const accountsQuery = useYnabAccounts(selectedBudgetId);
@@ -76,29 +69,65 @@ const LoggedIn: React.FC<{
     );
   }, [accountsQuery.data]);
 
+  useEffect(() => {
+    if (authState.selectedBudgetId !== null) {
+      setSelectedBudgetId(authState.selectedBudgetId);
+    }
+  }, [authState]);
+
+  useEffect(() => {
+    if (trackingAccounts) {
+      setAccountBalances(
+        trackingAccounts.map((account) => ({
+          id: account.id,
+          balance: account.balance / 1000,
+          name: account.name,
+        }))
+      );
+    }
+  }, [trackingAccounts, accountsQuery.dataUpdatedAt]);
+
+  const onUpdateAccountBalance = (id: string, balance: string) => {
+    const parsedBalance = parseFloat(balance);
+    setAccountBalances(
+      (prev) =>
+        prev?.map((account) => {
+          const originalBalance = trackingAccounts?.find((account) => account.id === id)?.balance;
+          return account.id === id
+            ? {
+                ...account,
+                balance: parsedBalance,
+                edited: originalBalance !== parsedBalance * 1000,
+              }
+            : account;
+        }) ?? null
+    );
+  };
+
   const onReset: React.MouseEventHandler = (e) => {
     e.preventDefault();
-    setAccountBalanceUpdates({});
     accountsQuery.refetch();
   };
 
   const accountBalanceUpdatesArray = React.useMemo(() => {
-    return Object.entries(accountBalanceUpdates).reduce(
-      (acc, [id, balance]) => {
-        // make sure to only submit updates if balances are different from the original
-        const originalBalance = trackingAccounts?.find((account) => account.id === id)?.balance;
-        if (originalBalance !== balance * 1000) {
-          acc.push({
-            id,
-            // the balance is the difference between the original and the new balance
-            amount: balance * 1000 - (originalBalance ?? 0),
-          });
-        }
-        return acc;
-      },
-      [] as { id: string; amount: number }[]
+    return (
+      accountBalances?.reduce(
+        (acc, { id, balance }) => {
+          // make sure to only submit updates if balances are different from the original
+          const originalBalance = trackingAccounts?.find((account) => account.id === id)?.balance;
+          if (!isNaN(balance) && originalBalance !== balance * 1000) {
+            acc.push({
+              id,
+              // the balance is the difference between the original and the new balance
+              amount: balance * 1000 - (originalBalance ?? 0),
+            });
+          }
+          return acc;
+        },
+        [] as { id: string; amount: number }[]
+      ) ?? []
     );
-  }, [accountBalanceUpdates, trackingAccounts]);
+  }, [accountBalances, trackingAccounts]);
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
@@ -130,20 +159,26 @@ const LoggedIn: React.FC<{
             </SelectContent>
           </Select>
         ) : null}
-        {trackingAccounts && (
+        {accountBalances && (
           <>
-            <Button onClick={onReset}>Reset balances to YNAB values</Button>
+            <Button disabled={accountBalanceUpdatesArray.length === 0} onClick={onReset}>
+              Reset balances to YNAB values
+            </Button>
             <AccountTable
-              accounts={trackingAccounts}
+              accounts={accountBalances}
               onAccountBalanceUpdate={onUpdateAccountBalance}
             />
           </>
         )}
-        {trackingAccounts && trackingAccounts.length > 0 && (
+        {accountBalances && accountBalances.length > 0 && (
           <Button
             type="submit"
             className="w-full"
-            disabled={accountBalanceUpdatesArray.length === 0 || newTransactionsMutation.isPending}
+            disabled={
+              accountBalanceUpdatesArray.length === 0 ||
+              newTransactionsMutation.isPending ||
+              accountsQuery.isFetching
+            }
           >
             Submit
           </Button>
@@ -171,6 +206,10 @@ const LoggedOut: React.FC<{
               Get started
             </Button>
           </div>
+          <div className="h-6" />
+          <h2 className="font-bold text-xl sm:text-2xl">Screenshot</h2>
+          <div className="h-4" />
+          <img src="/demo.webp" />
         </div>
       </div>
     </div>
