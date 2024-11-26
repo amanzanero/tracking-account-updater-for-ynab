@@ -1,4 +1,4 @@
-# YNAB Tracking Account Updater
+# Tracking Account Updater for YNAB
 
 I built this little app to help me update all my tracking accounts in [YNAB](https://www.ynab.com/) in bulk.
 

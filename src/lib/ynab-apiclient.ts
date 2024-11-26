@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React from "react";
-import * as ynab from "ynab";
+import { useYnabAuthContext } from "./auth";
+import { API } from "ynab";
 
-export const useYnabBudgets = (ynabToken: string | null) => {
-  const ynabApi = React.useMemo(
-    () => (ynabToken ? new ynab.API(ynabToken) : null),
-    [ynabToken]
-  );
+export const useYnabBudgets = () => {
+  const { authState } = useYnabAuthContext();
+  const ynabToken = authState.status === "authenticated" ? authState.accessToken : null;
+  const ynabApi = React.useMemo(() => (ynabToken ? new API(ynabToken) : null), [ynabToken]);
+
   return useQuery({
     queryKey: ["ynab-budgets", ynabToken],
     queryFn: async () => {
@@ -16,14 +17,11 @@ export const useYnabBudgets = (ynabToken: string | null) => {
   });
 };
 
-export const useYnabAccounts = (
-  ynabToken: string | null,
-  budgetId: string | null
-) => {
-  const ynabApi = React.useMemo(
-    () => (ynabToken ? new ynab.API(ynabToken) : null),
-    [ynabToken]
-  );
+export const useYnabAccounts = (budgetId: string | null) => {
+  const { authState } = useYnabAuthContext();
+  const ynabToken = authState.status === "authenticated" ? authState.accessToken : null;
+  const ynabApi = React.useMemo(() => (ynabToken ? new API(ynabToken) : null), [ynabToken]);
+
   return useQuery({
     queryKey: ["ynab-accounts", ynabToken, budgetId],
     queryFn: async () => {
@@ -34,28 +32,22 @@ export const useYnabAccounts = (
   });
 };
 
-export const useUpdateYnabTrackingAccounts = (
-  ynabToken: string | null,
-  budgetId: string | null
-) => {
-  const ynabApi = React.useMemo(
-    () => (ynabToken ? new ynab.API(ynabToken) : null),
-    [ynabToken]
-  );
+export const useUpdateYnabTrackingAccounts = (budgetId: string | null) => {
+  const { authState } = useYnabAuthContext();
+  const ynabToken = authState.status === "authenticated" ? authState.accessToken : null;
+  const ynabApi = React.useMemo(() => (ynabToken ? new API(ynabToken) : null), [ynabToken]);
+
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (
-      trackingAccountUpdates: { id: string; amount: number }[]
-    ) => {
+    mutationFn: async (trackingAccountUpdates: { id: string; amount: number }[]) => {
       if (!budgetId) return;
       if (!ynabApi) return;
 
-      const payeeId = (
-        await ynabApi.payees.getPayees(budgetId)
-      ).data.payees.find((p) => p.name === "Reconciliation Balance Adjustment");
+      const payeeId = (await ynabApi.payees.getPayees(budgetId)).data.payees.find(
+        (p) => p.name === "Reconciliation Balance Adjustment"
+      );
 
-      if (!payeeId)
-        throw new Error("Could not find payee to use for adjustment");
+      if (!payeeId) throw new Error("Could not find payee to use for adjustment");
 
       await ynabApi.transactions.createTransactions(budgetId, {
         transactions: trackingAccountUpdates.map((update) => ({
